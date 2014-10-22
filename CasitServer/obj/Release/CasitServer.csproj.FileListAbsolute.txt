@@ -52,3 +52,7 @@ J:\chenm\CasitServer\CasitServer\obj\Release\CasitServer_MarkupCompile.cache
 J:\chenm\CasitServer\CasitServer\obj\Release\CasitServer.g.resources
 J:\chenm\CasitServer\CasitServer\obj\Release\CasitServer.Properties.Resources.resources
 J:\chenm\CasitServer\CasitServer\obj\Release\CasitServer.csproj.GenerateResource.Cache
+J:\chenm\CasitServer\CasitServer\obj\Release\CasitServer_Content.g.cs
+J:\chenm\CasitServer\CasitServer\bin\Release\MySql.Data.dll
+J:\chenm\CasitServer\CasitServer\obj\Release\Info.baml
+J:\chenm\CasitServer\CasitServer\obj\Release\Info.g.cs

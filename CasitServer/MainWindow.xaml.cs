@@ -41,8 +41,10 @@ namespace CasitServer
         public MainWindow()
         {
             InitializeComponent();
+            //dbc.mysqlconnect();  //mysql连接测试
             btnConnect.Click += new RoutedEventHandler(btnConnect_Click);
             btnCloseConnect.Click += new RoutedEventHandler(btnCloseConnect_Click);
+            btnInfoSearch.Click += new RoutedEventHandler(btnInfoSearch_Click);
             tbIP.IsEnabled = false;
             ipHostInfo = Dns.Resolve(Dns.GetHostName());
             Ip = ipHostInfo.AddressList[0];
@@ -69,84 +71,8 @@ namespace CasitServer
             lbConnectInfo.Items.Add("端口监听中...");
             btnConnect.IsEnabled = false;
             btnCloseConnect.IsEnabled = true;
-            
-            #region 同步方式1
-            //lbState.Text = "连接中......";
-            //try
-            //{
-            //    //IPAddress Ip = IPAddress.Parse(tbIP.Text.ToString());
-            //    TcpListener TcpList = new TcpListener(Ip, int.Parse(tbPort.Text));
-            //    TcpList.Start();
-                
-            //    //MessageBox.Show("连接成功！");
-            //    lbState.Text = "连接成功，Server start!";
-            //    lbConnectInfo.Items.Add("Server Ip address:" + TcpList.LocalEndpoint);//get server ip and port
-            //    while (true)
-            //    {
-            //        Socket soc = TcpList.AcceptSocket();
-            //        lbConnectInfo.Items.Add("Received Connection:" + soc.RemoteEndPoint);//get client ip and port
-            //        byte[] b = new byte[100];
-            //        int k = soc.Receive(b); //数据的长度
-            //        string str = string.Empty;
-            //        str = Encoding.BigEndianUnicode.GetString(b,0,k);
-            //        //str = str.Replace("\0", "");
-            //        UnicodeEncoding AS = new UnicodeEncoding();
-            //        if (str.Contains(':'))
-            //        {
-            //            userInfo = SubStr(str);
-            //            if (!dbc.CheckSameID(userInfo[0], "IDnumber", dbc.GetTableNameUserInfomation()))
-            //            {
-            //                if (dbc.AddUser(userInfo))
-            //                {
-            //                    lbConnectInfo.Items.Add(str);
-            //                    soc.Send(AS.GetBytes("Register Success!"));
-            //                }
-            //                else
-            //                {
-            //                    soc.Send(AS.GetBytes("Register failed!"));
-            //                }
-            //            }
-            //            else
-            //            { 
-            //                soc.Send(AS.GetBytes("Id already exists"));
-            //            }
-            //            Array.Clear(userInfo, 0, userInfo.Length - 1);
-            //        }
-            //        else if (str.Contains('+'))
-            //        {
-            //            userInfo = SubStrAdmin(str);
-            //            if (dbc.Login(userInfo[0], userInfo[1], dbc.GetTableNameAdministrator()) == "Success")
-            //            {
-            //                soc.Send(AS.GetBytes("Admin Login Success!"));
-            //            }
-            //            else
-            //            { soc.Send(AS.GetBytes("Admin Login Failed!失败")); }
-            //            Array.Clear(userInfo, 0, userInfo.Length - 1);
-            //        }
-            //        else if (str.Contains('~'))
-            //        {
-            //            userInfo = SubStrUser(str);
-            //            if (dbc.Login(userInfo[0], userInfo[1], dbc.GetTableNameUserInfomation()) == "Success")
-            //            {
-            //                soc.Send(AS.GetBytes("User Login Success!"));
-            //            }
-            //            else
-            //            { soc.Send(AS.GetBytes("User Login Failed!")); }
-            //            Array.Clear(userInfo, 0, userInfo.Length - 1);
-            //        }
-            //        else
-            //        {
-            //            soc.Send(AS.GetBytes("Login Failed"));
-            //            Array.Clear(userInfo, 0, userInfo.Length - 1);
-            //        }
-            //        //soc.Close();
-            //    }
-            //    TcpList.Stop();
-            //}
-            //catch (Exception exc)
-            //{  }
-            #endregion
         }
+
         public void btnCloseConnect_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -214,7 +140,7 @@ namespace CasitServer
                 //TcpListener TcpList = new TcpListener(Ip, int.Parse(tbPort.Text));
                 TcpList = new TcpListener(Ip, PortStore);
                 TcpList.Start();
-
+                int reginNum = 0;    //注册人数
                 //MessageBox.Show("连接成功！");
                 this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() => { lbConnectInfo.Items.Add("Server Ip address:" + TcpList.LocalEndpoint);}));
                 while (true)
@@ -231,11 +157,11 @@ namespace CasitServer
                     if (str.Contains(':'))
                     {
                         userInfo = SubStr(str);
-                        if (!dbc.CheckSameID(userInfo[0], "IDnumber", dbc.GetTableNameUserInfomation()))
+                        if (!dbc.CheckSameID(userInfo[0], "id", dbc.GetTableNameUserInfomation()))
                         {
                             if (dbc.AddUser(userInfo))
                             {
-                                this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() => { lbConnectInfo.Items.Add(str); }));
+                                this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() => { lbConnectInfo.Items.Add(++reginNum); }));
                                 soc.Send(AS.GetBytes("Register Success!"));
                             }
                             else
@@ -252,7 +178,7 @@ namespace CasitServer
                     else if (str.Contains('+'))
                     {
                         userInfo = SubStrAdmin(str);
-                        if (dbc.Login(userInfo[0], userInfo[1], dbc.GetTableNameAdministrator()) == "Success")
+                        if (dbc.Login(userInfo[0], userInfo[1], dbc.GetTableNameUserInfomation()) == "Success")
                         {
                             soc.Send(AS.GetBytes("Admin Login Success!"));
                         }
@@ -394,6 +320,12 @@ namespace CasitServer
             {
                 Console.WriteLine(e.ToString());
             }
+        }
+
+        private void btnInfoSearch_Click(object sender, RoutedEventArgs e)
+        {
+            Info info = new Info();
+            info.Show();
         }
         #endregion
     }

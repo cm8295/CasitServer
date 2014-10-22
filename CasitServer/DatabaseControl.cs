@@ -14,97 +14,66 @@ namespace CasitServer
 {
     class DatabaseControl
     {
-        #region sql
+        #region mysql read and write
         #region databaseconnect
-        static public string DataTable_tbAdministrator = "tbAdministrator";
-        static public string DataTable_tbUserInformation = "tbUserInformation";
-        static string dbsource = "server = 192.168.1.45;Network Library = DBMSSOCN;Persist Security Info = true;Initial Catalog = CasitMedDataBase;uid = CasitUser;pwd = chenming";
-        //static string dbsource = "server = (local);Network Library = DBMSSOCN;Persist Security Info = true;Initial Catalog = CasitMedDataBase;uid = user1;pwd = 123456";
-        #endregion
-        
-        #region administrator
-        public DataSet GetAdminstratorInfo()
-        {
-            using (SqlConnection sqlcon = new SqlConnection(dbsource))
-            {
-                string sqltext = "select * from " + DataTable_tbAdministrator;
-                using (SqlDataAdapter sqldata = new SqlDataAdapter(sqltext, sqlcon))
-                {
-                    DataSet ds = new DataSet();
-                    ds.Clear();
-                    sqldata.Fill(ds, DataTable_tbAdministrator);
-                    return ds;
-                }
-            }
-        }
+        private DataSet dsall;
+        private MySqlConnection conn;
+        private MySqlDataAdapter mdap;
+        static public string T_userInfo = "user";
+        //static string mysqlConnect = "server=localhost;database = teeair;uid=root;pwd = root;charset = utf8;prot=3306";
+        static string mysqlConnect = "server=localhost;database = teeair;uid=root;pwd = root";
         #endregion
         #region user
+        public void mysqlconnect()
+        {
+            conn = new MySqlConnection(mysqlConnect);
+            conn.Open();
+        }
         public DataSet GetUserInfo()
         {
-            using (SqlConnection sqlcon = new SqlConnection(dbsource))
+            string sqltext = "select * from " + T_userInfo;
+            using(MySqlConnection sqlcon = new MySqlConnection(mysqlConnect))
             {
-                string sqltext = "select * from " + DataTable_tbUserInformation;
-                using (SqlDataAdapter sqldata = new SqlDataAdapter(sqltext, sqlcon))
+                using(MySqlDataAdapter sqldata = new MySqlDataAdapter(sqltext,mysqlConnect))
                 {
                     DataSet ds = new DataSet();
                     ds.Clear();
-                    sqldata.Fill(ds, DataTable_tbUserInformation);
+                    sqldata.Fill(ds, T_userInfo);
                     return ds;
                 }
             }
         }
         #endregion
-        #region publicfunction
-        public string GetTableNameAdministrator()/*get table administrator*/
+        #region publicfun
+        public string GetTableNameUserInfomation()
         {
-            return DataTable_tbAdministrator;
+            return T_userInfo;
         }
-        public string GetTableNameUserInfomation()/*get table userinformation*/
+        public string Login(string Uid, string Password, string TableName)
         {
-            return DataTable_tbUserInformation;
-        }
-        public string Login(string Uid, string Password, string TableName)///利用tablename中的uid和password登录
-        {
-            using (SqlConnection sqlcon = new SqlConnection(dbsource))
+            using(MySqlConnection sqlcon = new MySqlConnection(mysqlConnect))
             {
                 sqlcon.Open();
-                string sqltext = "select * from " + TableName + " where idnumber='" + Uid + "'";
+                string sqltext = "select * from " + TableName + " where id='" + Uid + "'";
                 try
                 {
-                    //*******************************读取数据库方式1（连接式）***************//
-                    //using (SqlDataAdapter sqldata = new SqlDataAdapter(sqltext, sqlcon))
-                    //{
-                    //    
-                    //    //DataSet ds = new DataSet();
-                    //    //ds.Clear();                        
-                    //    //sqldata.Fill(ds, TableName);
-                    //    //if (Password == ds.Tables[0].Rows[0]["password"].ToString())
-                    //    //{
-                    //    //    return "Success";
-                    //    //}
-                    //    //else
-                    //    //{
-                    //    //    return "密码错误";
-                    //    //}                    
-                    //}
-                    //****************读取数据库方式2（非连接式）**********************//
-                    SqlCommand cmd = new SqlCommand(sqltext, sqlcon);
-                    SqlDataReader rdr = cmd.ExecuteReader();
+                    MySqlCommand cmd = new MySqlCommand(sqltext, sqlcon);
+                    MySqlDataReader rdr = cmd.ExecuteReader();
                     rdr.Read();
-                    if (TableName == DataTable_tbUserInformation)
+                    if (TableName == T_userInfo)
                     {
-                        if (Password == rdr[2].ToString())
+                        if (Password == rdr[14].ToString())
                             return "Success";
                         else
                             return "key error";
                     }
-                    else if (TableName == DataTable_tbAdministrator)
-                    {
-                        if (Password == rdr[1].ToString())
-                            return "Success";
-                        else
-                            return "key error";
-                    }
+                    //else if (TableName == DataTable_tbAdministrator)
+                    //{
+                    //    if (Password == rdr[1].ToString())
+                    //        return "Success";
+                    //    else
+                    //        return "key error";
+                    //}
                     else
                         return "key error";
                 }
@@ -114,15 +83,14 @@ namespace CasitServer
                 }
             }
         }
-
         public Boolean CheckSameID(string Keyword, string ColumnName, string tablename)///查看在tablename表中是否存在属性columnname值为keyword的项
         {
-            using (SqlConnection sqlcon = new SqlConnection(dbsource))
+            using (MySqlConnection sqlcon = new MySqlConnection(mysqlConnect))
             {
                 try
                 {
                     string sqltext = "select * from " + tablename + " where " + ColumnName + "='" + Keyword + "'";
-                    using (SqlDataAdapter sqldata = new SqlDataAdapter(sqltext, sqlcon))
+                    using (MySqlDataAdapter sqldata = new MySqlDataAdapter(sqltext, sqlcon))
                     {
                         DataSet ds = new DataSet();
                         ds.Clear();
@@ -143,18 +111,17 @@ namespace CasitServer
                 }
             }
         }
-
         public bool AddUser(string[] ud)///在数据库中注册新用户
         {
             try
             {
-                using (SqlConnection sqlcon = new SqlConnection(dbsource))
+                using (MySqlConnection sqlcon = new MySqlConnection(mysqlConnect))
                 {
                     //MessageBox.Show("开始连接");
                     sqlcon.Open();
                     //MessageBox.Show("打开数据库成功");
-                    string sqltext = "insert into "+ DataTable_tbUserInformation + "(IDnumber,UserName,Password,Remark) values('" + ud[0] + "','" + ud[1] + "','" + ud[2] + "','" + ud[3] + "')";
-                    SqlCommand sqlcmd = new SqlCommand(sqltext, sqlcon);
+                    string sqltext = "insert into " + T_userInfo + "(id,name,pwd,reason,tm,tp,registertime) values('" + ud[0] + "','" + ud[1] + "','" + ud[2] + "','" + ud[3] + "','" + 10 + "','" + 10 + "','" + DateTime.Now.ToString() + "')";
+                    MySqlCommand sqlcmd = new MySqlCommand(sqltext, sqlcon);
                     sqlcmd.ExecuteNonQuery();
                     //MessageBox.Show("执行成功");
                     return true;
@@ -166,25 +133,6 @@ namespace CasitServer
                 //MessageBox.Show(e.Message);
             }
         }
-        #endregion
-        #endregion
-
-        #region mysql read and write
-        #region databaseconnect
-        private DataSet dsall;
-        private MySqlConnection conn;
-        private MySqlDataAdapter mdap;
-        static public string T_userInfo = "userInfo";
-        static string mysqlConnect = "server=localhost;database = tee;uid=root;pwd = casit.3058519";
-        #endregion
-        #region user
-        public void mysqlconnect()
-        {
-            conn = new MySqlConnection(mysqlConnect);
-            conn.Open();
-        }
-        #endregion
-        #region publicfun
         #endregion
         #endregion
     }
