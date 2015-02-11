@@ -19,9 +19,10 @@ namespace CasitServer
         private DataSet dsall;
         private MySqlConnection conn;
         private MySqlDataAdapter mdap;
-        static public string T_userInfo = "user";
+        static public string T_userInfo = "users";
         //static string mysqlConnect = "server=localhost;database = teeair;uid=root;pwd = root;charset = utf8;prot=3306";
-        static string mysqlConnect = "server=localhost;database = teeair;uid=root;pwd = root";
+        static string mysqlConnect = "server=localhost;database = teeair;uid=root;pwd = casit.3058519";
+        //static string mysqlConnect = "server=localhost;database = teeair;uid=root;pwd = root";
         #endregion
         #region user
         public void mysqlconnect()
@@ -32,15 +33,23 @@ namespace CasitServer
         public DataSet GetUserInfo()
         {
             string sqltext = "select * from " + T_userInfo;
-            using(MySqlConnection sqlcon = new MySqlConnection(mysqlConnect))
+            try
             {
-                using(MySqlDataAdapter sqldata = new MySqlDataAdapter(sqltext,mysqlConnect))
+                using (MySqlConnection sqlcon = new MySqlConnection(mysqlConnect))
                 {
-                    DataSet ds = new DataSet();
-                    ds.Clear();
-                    sqldata.Fill(ds, T_userInfo);
-                    return ds;
+                    using (MySqlDataAdapter sqldata = new MySqlDataAdapter(sqltext, mysqlConnect))
+                    {
+                        DataSet ds = new DataSet();
+                        ds.Clear();
+                        sqldata.Fill(ds, T_userInfo);
+                        return ds;
+                    }
                 }
+            }
+            catch (Exception err)
+            {
+                DataSet dss = new DataSet();
+                return dss;
             }
         }
         #endregion
